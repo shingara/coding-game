@@ -15,6 +15,14 @@ class Applications
   def values
     @applications.values
   end
+
+  def new_round
+    @previous_applications = {}
+  end
+
+  def clean_done
+    @applications.delete_if{|k,v| !@previous_applications.keys.include?(k) }
+  end
 end
 
 class Application
@@ -51,9 +59,25 @@ class Application
     card_needed.each do |k,v|
       # debug "#{k} => #{v} / #{hand.cards[k]}"
       # debug hand.cards.inspect
-      card_remain[k] = v - hand.cards[k]
+      card_remain[k] = v - (hand.cards[k]*2)
     end
     card_remain
+  end
+
+  def dept_generate(hand)
+    card_missing = card_needed.dup
+    debug("application : #{self.id} => #{card_missing.inspect}")
+    hand_remain = hand.cards.dup
+    card_missing.each do |k, v|
+      comp_available = hand_remain[k] || 0
+      card_use = (comp_available*2) % v
+      debug("card use : card_user #{k} / #{v} card_missing => #{card_missing[k]}")
+      hand_remain[k] = hand_remain[k] - (card_use*2)
+      card_missing[k] = card_missing[k] - card_use
+      debug("end card use : calc #{card_missing[k] - card_use} #{k} / #{v} card_missing => #{card_missing[k]}")
+    end
+    debug("end application : #{self.id} => #{card_missing.inspect}")
+    card_missing.values.sum - hand.cards[:bonus]
   end
 
 end
@@ -186,6 +210,12 @@ class ApplicationDone
     end
     remain_card
   end
+
+  def self.less_depth(applications, hand)
+    applications.values.map do |application|
+      [application.id, application.dept_generate(hand)]
+    end
+  end
 end
 
 def debug(str)
@@ -200,10 +230,12 @@ loop do
 
   game_phase = gets.chomp # can be MOVE, GIVE_CARD, THROW_CARD, PLAY_CARD or RELEASE
   applications_count = gets.to_i
+  applications.new_round
 
   applications_count.times do
     applications.update(Application.new(gets.split(" ")))
   end
+  applications.clean_done
 
   2.times do
     # player_location: id of the zone in which the player is located
@@ -228,6 +260,8 @@ loop do
     puts "MOVE #{SearchCard.zone_id_card_missing(applications, decks.hand, players[0].player_location)}"
   elsif game_phase == 'RELEASE'
     id_finish = SearchApplication.id_finish(applications, decks.hand)
+    debug "less depth : #{ApplicationDone.less_depth(applications, decks.hand).inspect}"
+
     if id_finish
       puts "RELEASE #{id_finish}"
     else
