@@ -5,6 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      ssh: ["default"]
     volumes:
       - .:/usr/src/app/
       - ~/.config/nvim:/root/.config/nvim
+      - ~/.ssh/id_ed25519:/home/shingara/.ssh/id_ed25519
+      # Github copilot configuration
+      - ~/.config/github-copilot/:~/.config/github-copilot/
