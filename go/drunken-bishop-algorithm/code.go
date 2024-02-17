@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -48,13 +47,18 @@ func printChessBoard(chessBoard ChessBoard) {
 	fmt.Println("+-----------------+")
 }
 
+func reverse[S ~[]E, E any](s S) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}
 func decimalToBinary(num int64) []int64 {
 	binary := make([]int64, 0)
 	for num != 0 {
 		binary = append(binary, num%2)
 		num = num / 2
 	}
-	slices.Reverse(binary)
+	reverse(binary)
 	return binary
 }
 
@@ -76,6 +80,7 @@ func HexTodirection(hexString string) []string {
 			result = append(result, pair)
 		}
 	}
+	reverse(result)
 	return result
 }
 
@@ -97,13 +102,13 @@ func MoveBishop(chessBoard *ChessBoard, directions []string) {
 	var new_position []int
 	for _, direction := range directions {
 		if direction == "11" {
-			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] + 1}
-		} else if direction == "10" {
-			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] - 1}
-		} else if direction == "00" {
-			new_position = []int{chessBoard.Position[0] + 1, chessBoard.Position[1] - 1}
-		} else if direction == "01" {
 			new_position = []int{chessBoard.Position[0] + 1, chessBoard.Position[1] + 1}
+		} else if direction == "10" {
+			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] + 1}
+		} else if direction == "00" {
+			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] - 1}
+		} else if direction == "01" {
+			new_position = []int{chessBoard.Position[0] + 1, chessBoard.Position[1] - 1}
 		}
 		if new_position[0] > 16 {
 			new_position[0] = 16

@@ -19,7 +19,7 @@ func TestHexToDirection(t *testing.T) {
 func TestHexToDirectionWithSeveralChar(t *testing.T) {
 	directive := "FC"
 	result := HexTodirection(directive)
-	want := []string{"11", "11", "11", "00"}
+	want := []string{"00", "11", "11", "11"} // Need to be reverse
 	if reflect.DeepEqual(result, want) == false {
 		t.Errorf("Expected %v, got %v\n", want, result)
 	}
