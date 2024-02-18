@@ -52,13 +52,14 @@ func reverse[S ~[]E, E any](s S) {
 		s[i], s[j] = s[j], s[i]
 	}
 }
-func decimalToBinary(num int64) []int64 {
+func decimalToBinary(num int64, byte_need int) []int64 {
 	binary := make([]int64, 0)
 	for num != 0 {
 		binary = append(binary, num%2)
 		num = num / 2
 	}
-	if len(binary)%2 != 0 {
+	// fmt.Fprintf(os.Stderr, "byte_need : %v\n", byte_need)
+	for len(binary)%2 != 0 || len(binary) < (byte_need*2) {
 		binary = append(binary, 0)
 	}
 	reverse(binary)
@@ -70,12 +71,13 @@ func HexTodirection(hexString string) []string {
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
-	decodedByteArray := decimalToBinary(i)
+	// fmt.Fprintf(os.Stderr, "decimal : %v\n", i)
+	decodedByteArray := decimalToBinary(i, len(hexString)*2)
 	var result []string
 	var previous int64
 	var pair string
 
-	fmt.Fprintf(os.Stderr, "decodedByteArray : %v\n", decodedByteArray)
+	// fmt.Fprintf(os.Stderr, "decodedByteArray : %v\n", decodedByteArray)
 	for i, b := range decodedByteArray {
 		if i%2 == 0 {
 			previous = b
@@ -150,6 +152,7 @@ func main() {
 	scanner.Scan()
 	fingerprint := scanner.Text()
 	_ = fingerprint // to avoid unused error
+	fmt.Fprintf(os.Stderr, "finger print : %v\n", fingerprint)
 
 	chess_board := makeChessBoard([]int{8, 4})
 	for _, hex := range strings.Split(fingerprint, ":") {
