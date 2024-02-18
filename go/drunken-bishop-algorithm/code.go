@@ -58,6 +58,9 @@ func decimalToBinary(num int64) []int64 {
 		binary = append(binary, num%2)
 		num = num / 2
 	}
+	if len(binary)%2 != 0 {
+		binary = append(binary, 0)
+	}
 	reverse(binary)
 	return binary
 }
@@ -72,6 +75,7 @@ func HexTodirection(hexString string) []string {
 	var previous int64
 	var pair string
 
+	fmt.Fprintf(os.Stderr, "decodedByteArray : %v\n", decodedByteArray)
 	for i, b := range decodedByteArray {
 		if i%2 == 0 {
 			previous = b
@@ -81,6 +85,9 @@ func HexTodirection(hexString string) []string {
 		}
 	}
 	reverse(result)
+	// for len(result) != 4 {
+	// 	result = append(result, "00")
+	// }
 	return result
 }
 
@@ -90,8 +97,15 @@ var ListOfSymbols = []string{".", "o", "+", "=", "*", "B", "O", "X", "@", "%", "
 
 // Find the next symbol to use as marker
 func NextMarker(current string) string {
+	if current == "S" {
+		return "S"
+	}
+
 	for i, symbol := range ListOfSymbols {
 		if current == symbol {
+			if i+2 > len(ListOfSymbols) {
+				i = i - len(ListOfSymbols)
+			}
 			return ListOfSymbols[i+1]
 		}
 	}
@@ -99,17 +113,18 @@ func NextMarker(current string) string {
 }
 
 func MoveBishop(chessBoard *ChessBoard, directions []string) {
-	var new_position []int
-	for _, direction := range directions {
-		if direction == "11" {
+	var new_position []int // {x, y}
+	for step, direction := range directions {
+		if direction == "11" { //bottom right
 			new_position = []int{chessBoard.Position[0] + 1, chessBoard.Position[1] + 1}
-		} else if direction == "10" {
+		} else if direction == "10" { // bottom left
 			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] + 1}
-		} else if direction == "00" {
+		} else if direction == "00" { // top left
 			new_position = []int{chessBoard.Position[0] - 1, chessBoard.Position[1] - 1}
-		} else if direction == "01" {
+		} else if direction == "01" { // top right
 			new_position = []int{chessBoard.Position[0] + 1, chessBoard.Position[1] - 1}
 		}
+
 		if new_position[0] > 16 {
 			new_position[0] = 16
 		}
@@ -122,7 +137,7 @@ func MoveBishop(chessBoard *ChessBoard, directions []string) {
 		if new_position[1] < 0 {
 			new_position[1] = 0
 		}
-		fmt.Println(new_position)
+		fmt.Fprintf(os.Stderr, "step : %v, direction : %v, => new position %v\n", step, direction, new_position)
 		chessBoard.Lines[new_position[1]].Plot[new_position[0]] = NextMarker(chessBoard.Lines[new_position[1]].Plot[new_position[0]])
 		chessBoard.Position = new_position
 	}
@@ -138,8 +153,10 @@ func main() {
 
 	chess_board := makeChessBoard([]int{8, 4})
 	for _, hex := range strings.Split(fingerprint, ":") {
-		MoveBishop(&chess_board, HexTodirection(hex))
+		binary := HexTodirection(hex)
+		MoveBishop(&chess_board, binary)
 	}
+	chess_board.Lines[chess_board.Position[1]].Plot[chess_board.Position[0]] = "E"
 	printChessBoard(chess_board)
 
 	// fmt.Fprintln(os.Stderr, "Debug messages...")
