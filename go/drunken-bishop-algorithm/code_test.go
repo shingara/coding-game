@@ -139,3 +139,11 @@ func TestNextMarkerNotChangeIfS(t *testing.T) {
 		t.Errorf("Expected %v, got %v\n", want, result)
 	}
 }
+
+func TestNextMarkerIfAllUsed(t *testing.T) {
+	result := NextMarker("^")
+	want := " "
+	if result != want {
+		t.Errorf("Expected %v, got %v\n", want, result)
+	}
+}

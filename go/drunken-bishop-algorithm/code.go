@@ -40,7 +40,7 @@ func printChessBoard(chessBoard ChessBoard) {
 	for i, _ := range chessBoard.Lines {
 		fmt.Printf("|")
 		for j, _ := range chessBoard.Lines[i].Plot {
-			fmt.Printf(chessBoard.Lines[i].Plot[j])
+			fmt.Print(chessBoard.Lines[i].Plot[j])
 		}
 		fmt.Printf("|\n")
 	}
@@ -106,7 +106,7 @@ func NextMarker(current string) string {
 	for i, symbol := range ListOfSymbols {
 		if current == symbol {
 			if i+2 > len(ListOfSymbols) {
-				i = i - len(ListOfSymbols)
+				return " "
 			}
 			return ListOfSymbols[i+1]
 		}
@@ -139,8 +139,9 @@ func MoveBishop(chessBoard *ChessBoard, directions []string) {
 		if new_position[1] < 0 {
 			new_position[1] = 0
 		}
-		fmt.Fprintf(os.Stderr, "step : %v, direction : %v, => new position %v\n", step, direction, new_position)
-		chessBoard.Lines[new_position[1]].Plot[new_position[0]] = NextMarker(chessBoard.Lines[new_position[1]].Plot[new_position[0]])
+		next_marker := NextMarker(chessBoard.Lines[new_position[1]].Plot[new_position[0]])
+		fmt.Fprintf(os.Stderr, "step : %v, direction : %v, => new position %v : %v\n", step, direction, new_position, next_marker)
+		chessBoard.Lines[new_position[1]].Plot[new_position[0]] = next_marker
 		chessBoard.Position = new_position
 	}
 }
