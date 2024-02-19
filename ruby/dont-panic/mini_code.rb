@@ -1,47 +1,11 @@
 STDOUT.sync = true
-class Zone < Struct.new(:nb_floors, :width, :exit_floor, :exit_pos, :elevators)
 
-    def good_direction?(clone)
-        if clone.direction == "RIGHT"
-            clone.pos - 1 < elevator_position(clone.floor)
-        else
-            clone.pos + 1 > elevator_position(clone.floor)
-        end
-    end
+nf, w, _, ef, ep, _, _, ne = gets.split(" ").collect{|i| i.to_i}
+elevators = {ef => ep}
+ne.times{e,p=gets.split(" "); elevators[e.to_i] = p.to_i}
 
-    def elevator_position(floor)
-        elevator = elevators.select{|e| e[0] == floor }.first
-        if elevator.nil? || floor == exit_floor
-            exit_pos
-        else
-            elevator[1] || exit_floor
-        end
-    end
-
-end
-
-class Clone < Struct.new(:floor, :pos, :direction)
-end
-
-$nbFloors, $width, $nbRounds, $exitFloor, $exitPos, $nbTotalClones, $nbAdditionalElevators, $nbElevators = gets.split(" ").collect {|x| x.to_i}
-
-elevators = []
-$nbElevators.times do
-    elevators << gets.split(" ").collect {|x| x.to_i} #elevator is an Array
-end
-
-zone = Zone.new($nbFloors, $width, $exitFloor, $exitPos, elevators)
-
-# game loop
 loop do
-    $cloneFloor, $clonePos, $direction = gets.split(" ")
-    $cloneFloor = $cloneFloor.to_i
-    $clonePos = $clonePos.to_i
-    clone = Clone.new($cloneFloor, $clonePos, $direction)
-
-    if clone.pos == zone.width - 1 || clone.pos == 0 || !zone.good_direction?(clone)
-        puts "BLOCK"
-    else
-        puts "WAIT" # action: WAIT or BLOCK
-    end
+    clone = gets.split(" ") # [$cloneFloor.to_i, $clonePos.to_i, $direction] #clone is an Array clone[0] = floor, clone[1] = pos, clone[2] = direction
+    good_direction = clone[2] == "RIGHT" ? clone[1].to_i - 1 < elevators[clone[0].to_i] : clone[1].to_i + 1 > (elevators[clone[0].to_i] || 0)
+    puts ([w-1, 0].include?(clone[1].to_i) || !good_direction) ? "BLOCK" : "WAIT"
 end
