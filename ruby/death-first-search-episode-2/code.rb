@@ -3,116 +3,182 @@ STDOUT.sync = true # DO NOT REMOVE
 # Auto-generated code below aims at helping you parse
 # the standard input according to the problem statement.
 
-gateways =  []
-links = []
-siblings = {}
+all_links = []
+all_nodes = {}
+
+class Link
+  def initialize(n1, n2)
+    @n1 = n1
+    @n2 = n2
+    @n1.links << self
+    @n2.links << self
+    @shutdown = false
+  end
+
+  def other_node_of(node)
+    return n1 if n2 == node
+    return n2 if n1 == node
+    nil
+  end
 
 
-def path(gateway, siblings, botnet)
-  path  = []
-  see = []
-  path << gateway
-  see << gateway
-  edge_of = {}
-  while !path.empty?
-    next_node = path.shift
-    siblings[next_node].each do |sibling|
-      if !see.include?(sibling)
-        see << sibling
-        path << sibling
-        edge_of[sibling] = next_node
+  def shutdown!
+    @shutdown = true
+  end
+  attr_reader :n1, :n2, :shutdown
+
+  def has_gateway?
+    n1.gateway || n2.gateway
+  end
+
+  def to_s
+    "#{n1.index} #{n2.index}"
+  end
+end
+
+class Node
+  def initialize(index)
+    @index = index
+    @links = []
+  end
+  attr_reader :gateway, :index, :links
+
+  def gateway!
+    @gateway = true
+  end
+
+  def nb_links_to_gateway
+    links.select{|l| l.has_gateway? && !l.shutdown }.size
+  end
+
+  def risky?
+    nb_links_to_gateway > 0 && !gateway
+  end
+
+  def big_risky?
+    nb_links_to_gateway > 1 && !gateway
+  end
+
+  def link_near_gateway
+    links.each do |link|
+      return link if link.has_gateway? && !link.shutdown
+    end
+    nil
+  end
+
+  def inspect
+    "#{index} / #{gateway}"
+  end
+end
+
+class AllPath
+  def initialize(start, nodes)
+    @start = start
+    @nodes = nodes
+    @paths = {}
+  end
+  attr_reader :start, :nodes
+
+  def process_path
+    size_path = $N
+    queue = [[start, []]]
+    @paths = {start => []}
+    visited = []
+    while queue.any?
+      node, path = queue.shift
+      next if visited.include?(node.index)
+      visited << node.index
+      if !node.risky? && node != start
+        @paths[node] = path + [node]
+      else
+        @paths[node] = path
+      end
+      node.links.each do |link|
+        child = link.other_node_of(node)
+        queue << [child, @paths[node]] unless child.gateway
       end
     end
   end
-  length = 0
-  previous_node = botnet
-  to_cut = nil
-  while previous_node != gateway && !previous_node.nil?
-    to_cut = previous_node
-    previous_node = edge_of[previous_node]
-    length += 1 if previous_node
+
+  def shortest
+    warn 'process start'
+    process_path
+    warn 'process finish'
+    warn 'all path : ' + @paths.inspect
+    risky_node = nil
+    min_path = $N
+    @paths.each do |node, path|
+      next if node.index == start.index
+
+      not_risky_path_size = path.select{|n| !n.risky? }.size
+      warn "node : #{node.index} size : #{not_risky_path_size}"
+      if not_risky_path_size < min_path && node.big_risky?
+        risky_node = node
+        min_path = not_risky_path_size
+      end
+    end
+    risky_node
   end
-  return to_cut, length
-end
 
-def node_with_several_gateway(gateways, siblings)
-  gateways.map{|g| siblings[g] }.flatten.group_by{|x| x}.select{|k, v| v.size > 1}.keys
 end
-
 
 # N: the total number of nodes in the level, including the gateways
 # L: the number of links
 # E: the number of exit gateways
+#
 $N, $L, $E = gets.split(" ").collect {|x| x.to_i}
 $L.times do
   # N1: N1 and N2 defines a link between these nodes
   n1, n2 = gets.split(" ").collect {|x| x.to_i}
-  links << [n1, n2]
-  siblings[n1] ||= []
-  siblings[n1] << n2
 
-  siblings[n2] ||= []
-  siblings[n2] << n1
+  all_nodes[n1] ||= Node.new(n1)
+  all_nodes[n2] ||= Node.new(n2)
+
+  all_links << Link.new(
+    all_nodes[n1], all_nodes[n2]
+  )
 end
+
 $E.times do
-  gateways << gets.to_i # the index of a gateway node
-end
-
-def result_of(gateways, siblings)
-  results = {}
-  gateways.each do |gateway|
-    STDERR.puts "Gateway: #{gateway}"
-    node_associate, length = path(gateway, siblings, $SI)
-    if length > 0
-      results[length] ||= {}
-      results[length][node_associate] ||= []
-      results[length][node_associate] << gateway
-    end
-  end
-  STDERR.puts "Results: #{results}"
-  min_length = results.keys.min
-  return results, min_length
+   gateway = gets.to_i # the index of a gateway node
+   all_nodes[gateway].gateway!
 end
 
 
 # game loop
 loop do
-  $SI = gets.to_i # The index of the node on which the Skynet agent is positioned this turn
+  si = gets.to_i # The index of the node on which the Skynet agent is positioned this turn
+  # warn all_nodes.keys.inspect
+  # warn si
+  si_node = all_nodes[si]
 
-
-  # Write an action using puts
-  # To debug: STDERR.puts "Debug messages..."
-
-siblings.each do |k, v|
-STDERR.puts "Siblings: #{k} ->#{v}"
-end
-
-default_results, default_min_length = result_of(gateways, siblings)
-if default_min_length > 1
-  weak_nodes = node_with_several_gateway(gateways, siblings)
-  results, min_length = result_of(weak_nodes, siblings)
-  unless results.keys.empty?
-    max_links = results[min_length].values.map(&:sum).max
-    choice = results[min_length].select {|k, v| v.sum == max_links}.first
-    STDERR.puts "Choice: #{choice}"
-    gateway = gateways.select do |sib|
-      siblings[sib].include?(choice[1].first)
-    end.first
-
-    puts "#{gateway} #{choice[1].first}" # Example: 0 1 are the indices of the nodes you wish to sever the link between
-
-    siblings[gateway].delete(choice[1].first)
-    siblings[choice[1].first].delete(gateway)
+  ## if the si to 1 step of gateway shutdown the link
+  link_near_gateway = si_node.link_near_gateway
+  if link_near_gateway
+    link_near_gateway.shutdown!
+    puts link_near_gateway
     next
   end
+
+  ## How many links to gateway
+  risky_nodes = all_nodes.values.select{|n| n.big_risky? }
+
+  warn "risky_node : " + risky_nodes.map(&:gateway).inspect
+  warn "risky_node : " + risky_nodes.map(&:index).inspect
+  if risky_nodes.any?
+    node = AllPath.new(si_node, risky_nodes).shortest
+    warn "node shortest : " + node.inspect
+    if node
+      link = node.link_near_gateway
+      puts link
+      link.shutdown!
+      next
+    end
+  end
+
+  ## Take a random link because we have time
+  link = all_links.select{|l| l.has_gateway? && !l.shutdown }.first
+  puts link
+  link.shutdown!
 end
 
-  max_links = default_results[default_min_length].values.map(&:sum).max
-  choice = default_results[default_min_length].select {|k, v| v.sum == max_links}.first
-
-  puts "#{choice[0]} #{choice[1].first}" # Example: 0 1 are the indices of the nodes you wish to sever the link between
-
-  siblings[choice[0]].delete(choice[1].first)
-  siblings[choice[1].first].delete(choice[0])
-
-end
