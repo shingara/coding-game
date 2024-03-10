@@ -40,21 +40,21 @@ class ZoneToLand
 end
 
 class Lander
-  def initialize(x, y, hs, vs, f, r, p)
+  def initialize(x, y, hs, vs, f, r, t)
     @x = x
     @y = y
     @hs = hs
     @vs = vs
     @f = f
     @r = r
-    @p = 3 #p
+    @t = 3 #p
   end
-  attr_reader :x, :y, :hs, :vs, :f, :r, :p
+  attr_accessor :x, :y, :hs, :vs, :f, :r, :t
 
   GRAVITY = 3.711
 
   def next_vs
-    vs + (GRAVITY - p)
+    vs + (GRAVITY - t)
   end
 
   def next_position
@@ -64,8 +64,27 @@ class Lander
     ]
   end
 
+  def in_wrong_direction(zone)
+    (x < zone.land1.x && hs <= 0 ) ||
+      (x > zone.land2.x && hs >= 0)
+  end
+
+  def min_distance_to_land(zone)
+    [(zone.land1.x - x).abs,
+      (zone.land2.x - x).abs].min
+  end
+
+  def time_to_go_horizontal(zone)
+    if in_wrong_direction(zone)
+      1000
+    else
+      # calcul distance to x / horizontal speed
+      min_distance_to_land(zone) / hs.abs.to_f
+    end
+  end
+
   def go_to(zone)
-    [r, p].join(' ')
+    [r, t].join(' ')
   end
 
 end
