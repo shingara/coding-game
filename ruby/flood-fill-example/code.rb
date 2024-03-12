@@ -1,6 +1,3 @@
-# Auto-generated code below aims at helping you parse
-# the standard input according to the problem statement.
-
 class Map
   def initialize(w, h)
     @w = w
@@ -10,14 +7,13 @@ class Map
     @tower_value = {}
     @round_done = []
   end
-  attr_reader :lines
-  attr_accessor :round_done
+  attr_accessor :lines :round_done
 
   def add_line(line)
     new_line = line.split('')
     new_line.each_with_index {|l, i|
       if !['.', '#'].include?(l)
-        warn "first tower at (#{i}, #{@lines.size}, #{l})"
+        # warn "first tower at (#{i}, #{@lines.size}, #{l})"
         id = new_id
         @tower_value[id] = l
         add_tower(i, @lines.size, id, 1)
@@ -42,9 +38,6 @@ class Map
     while @towers.size > 0
       tower = @towers.shift
       x, y, t, round = tower
-      # if round > 4
-      #   break
-      # end
       [
         [x+1, y],
         [x-1, y],
@@ -88,11 +81,11 @@ end
 # Write an answer using puts
 # To debug: STDERR.puts "Debug messages..."
 
-# Debug
-map.lines.each do |line|
-  warn line.join('')
-end
-warn 'end debug'
+# # Debug
+# map.lines.each do |line|
+#   warn line.join('')
+# end
+# warn 'end debug'
 
 map.generate
 
