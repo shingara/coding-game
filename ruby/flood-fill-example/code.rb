@@ -7,6 +7,7 @@ class Map
     @h = h
     @lines = []
     @towers = []
+    @tower_value = {}
     @round_done = []
   end
   attr_reader :lines
@@ -17,17 +18,25 @@ class Map
     new_line.each_with_index {|l, i|
       if !['.', '#'].include?(l)
         warn "first tower at (#{i}, #{@lines.size}, #{l})"
-        add_tower(i, @lines.size, l, 1)
+        id = new_id
+        @tower_value[id] = l
+        add_tower(i, @lines.size, id, 1)
         round_done << [i, @lines.size, 0]
       end
     }
     @lines << new_line
   end
 
+
+  def new_id
+    @id ||= 0
+    @id += 1
+    @id
+  end
+
   def add_tower(x, y, t, round)
     @towers << [x, y, t, round]
   end
-
 
   def generate
     while @towers.size > 0
@@ -57,6 +66,13 @@ class Map
       end
     end
   end
+
+  def read_lines
+    @lines.each do |line|
+      line.map!{|i| @tower_value[i] || i}.join('')
+      yield line
+    end
+  end
 end
 
 # w: width of the building.
@@ -80,6 +96,6 @@ warn 'end debug'
 
 map.generate
 
-map.lines.each do |line|
+map.read_lines do |line|
   puts line.join('')
 end
