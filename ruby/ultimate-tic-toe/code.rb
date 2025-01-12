@@ -90,7 +90,10 @@ def the_best_move(opponent_action, base_action, my_action, all_action, vector)
       next if my_action.include?(on_local([i,j], vector))
       possible_line = Result.select{|r| r.include?([i,j]) }
       opponent_in_line = possible_line.map{|r| (r.map{|r1| on_local(r1, vector)} & opponent_action).size}.sum
-      my_action_in_line = possible_line.map{|r| (r.map{|r1| on_local(r1, vector)} & my_action).size}.sum
+      my_action_in_line = possible_line.map{|r|
+        s = (r.map{|r1| on_local(r1, vector)} & my_action).size
+        s > 1 ? 10 : s
+      }.sum
       choice[[i,j]] = possible_line.size - opponent_in_line*2 + my_action_in_line
     end
   end

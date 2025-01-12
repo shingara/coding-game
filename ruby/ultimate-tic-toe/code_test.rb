@@ -120,6 +120,20 @@ RSpec.describe "#the_best_move" do
     end
   end
 
+  context "with several my action" do
+    let(:my_action) { [[0,2], [2,0], [2,2]] }
+    it 'should return the best move' do
+      expect(the_best_move(opponent_action, base_action, my_action, all_action, vector)).to eq({
+        [0,0] => 6,
+        [0,1] => 3,
+        [1,0] => 3,
+        [1,1] => 15,
+        [1,2] => 12,
+        [2,1] => 12,
+      })
+    end
+  end
+
   context "with a opponent action and my action" do
     let(:opponent_action) { [[0,0]] }
     let(:my_action) { [[0,1]] }
