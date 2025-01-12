@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -28,8 +29,42 @@ func Test_02(t *testing.T) {
 	name := "MINAS"
 	reader := strings.NewReader(name)
 	action := codeOfRings(reader)
-	result := ">............."
+	result := "+++++++++++++.>+++++++++.>-------------.>+.>--------."
 	if action != result {
+		t.Fatalf(`parse failed = %q want match to %#q`, action, result)
+	}
+}
+
+func Test_chooseCharToA(t *testing.T) {
+	name := 'A'
+	var result []rune
+	result = append(result, '+')
+	action := chooseChar(name)
+	if !reflect.DeepEqual(action, result) {
+		t.Fatalf(`parse failed = %q want match to %#q`, action, result)
+	}
+}
+
+func Test_chooseCharToB(t *testing.T) {
+	name := 'B'
+	var result []rune
+	for i := 0; i < 2; i++ {
+		result = append(result, '+')
+	}
+	action := chooseChar(name)
+	if !reflect.DeepEqual(action, result) {
+		t.Fatalf(`parse failed = %q want match to %#q`, action, result)
+	}
+}
+
+func Test_chooseCharToZ(t *testing.T) {
+	name := 'Z'
+	var result []rune
+	for i := 0; i < 1; i++ {
+		result = append(result, '-')
+	}
+	action := chooseChar(name)
+	if !reflect.DeepEqual(action, result) {
 		t.Fatalf(`parse failed = %q want match to %#q`, action, result)
 	}
 }
