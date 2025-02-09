@@ -45,7 +45,10 @@ func chooseChar(char rune, previousChar rune) []rune {
 	var result []rune
 	position := getAlphabetPosition(char)
 	current_position := getAlphabetPosition(previousChar)
-	delta := position - current_position
+	// fmt.Println("position", position)
+	// fmt.Println("current_position", current_position)
+	delta := (position - current_position + 27) % 27
+	// fmt.Println("delta", delta)
 	if delta > (27 / 2) {
 		for i := 0; i < (27 - delta); i++ {
 			result = append(result, '-')

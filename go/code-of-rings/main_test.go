@@ -69,6 +69,21 @@ func Test_chooseCharToZ(t *testing.T) {
 	}
 }
 
+// ABCDEFGHIJKLMNOPQRSTUVWXYZ
+func Test_chooseCharMFromU(t *testing.T) {
+	name := 'M'
+	var result []rune
+	// --------.
+	for i := 0; i < 8; i++ {
+		result = append(result, '-')
+	}
+
+	action := chooseChar(name, 'U')
+	if !reflect.DeepEqual(action, result) {
+		t.Fatalf(`parse failed = %q want match to %#q`, action, result)
+	}
+}
+
 func Test_moreThan30(t *testing.T) {
 	name := "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB"
 	reader := strings.NewReader(name)
