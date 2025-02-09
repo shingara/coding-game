@@ -8,6 +8,8 @@ import (
 	"unicode"
 )
 
+var CurrentChar = make([]rune, 30)
+
 /**
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
@@ -26,6 +28,9 @@ func extractSentence(io io.Reader) string {
 // getAlphabetPosition returns the position of a letter in the alphabet (1-based index).
 // It works for both uppercase and lowercase letters.
 func getAlphabetPosition(letter rune) int {
+	if letter == ' ' {
+		return 0
+	}
 	if unicode.IsLetter(letter) {
 		if unicode.IsUpper(letter) {
 			return int(letter - 'A' + 1)
@@ -33,18 +38,20 @@ func getAlphabetPosition(letter rune) int {
 			return int(letter - 'a' + 1)
 		}
 	}
-	return -1 // Return -1 for non-alphabet characters
+	return 0 // Return -1 for non-alphabet characters
 }
 
-func chooseChar(char rune) []rune {
+func chooseChar(char rune, previousChar rune) []rune {
 	var result []rune
 	position := getAlphabetPosition(char)
-	if position > (27 / 2) {
-		for i := 0; i < (27 - position); i++ {
+	current_position := getAlphabetPosition(previousChar)
+	delta := position - current_position
+	if delta > (27 / 2) {
+		for i := 0; i < (27 - delta); i++ {
 			result = append(result, '-')
 		}
 	} else {
-		for i := 0; i < position; i++ {
+		for i := 0; i < delta; i++ {
 			result = append(result, '+')
 		}
 	}
@@ -53,10 +60,17 @@ func chooseChar(char rune) []rune {
 
 // Generate the full exercice
 func codeOfRings(io io.Reader) string {
+	// Fill the slice with space
+	for i := range CurrentChar {
+		CurrentChar[i] = ' '
+	}
+
 	magicPhrase := extractSentence(io)
 	var result []rune
-	for _, char := range magicPhrase {
-		result = append(result, chooseChar(char)...)
+	for j, char := range magicPhrase {
+		index := j % 30
+		result = append(result, chooseChar(char, CurrentChar[index])...)
+		CurrentChar[index] = char
 		result = append(result, rune('.'))
 		result = append(result, rune('>'))
 	}
