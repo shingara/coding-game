@@ -61,6 +61,11 @@ func chooseChar(char rune, previousChar rune) []rune {
 	return result
 }
 
+func BestMove(current_index int, char rune) (int, []rune) {
+	fmt.Println("current_index", current_index)
+	return current_index, chooseChar(char, CurrentChar[current_index])
+}
+
 // Generate the full exercice
 func codeOfRings(io io.Reader) string {
 	// Fill the slice with space
@@ -70,12 +75,16 @@ func codeOfRings(io io.Reader) string {
 
 	magicPhrase := extractSentence(io)
 	var result []rune
-	for j, char := range magicPhrase {
-		index := j % 30
-		result = append(result, chooseChar(char, CurrentChar[index])...)
-		CurrentChar[index] = char
+	current_index := 0
+	for _, char := range magicPhrase {
+		new_index, choose := BestMove(current_index, char)
+		// index := j % 30
+		// result = append(result, chooseChar(char, CurrentChar[index])...)
+		CurrentChar[new_index] = char
+		result = append(result, choose...)
 		result = append(result, rune('.'))
 		result = append(result, rune('>'))
+		current_index = (new_index + 1) % 30
 	}
 
 	// Remove the last run because it's a excedent >
